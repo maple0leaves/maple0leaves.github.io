@@ -28,6 +28,8 @@ npx hexo new post "文章标题"
 ```powershell
 git add .
 git commit -m "更新网站"
+$env:HTTPS_PROXY = 'http://127.0.0.1:10090'
+$env:HTTP_PROXY = 'http://127.0.0.1:10090'
 git -c http.version=HTTP/1.1 -c http.sslBackend=schannel push origin main
 ```
 
