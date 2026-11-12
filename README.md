@@ -1,6 +1,6 @@
 # Maple Leaves
 
-maple0leaves 的个人网站，使用 Hexo 构建，计划发布在 GitHub Pages：<https://maple0leaves.github.io/>。
+maple0leaves 的个人网站，使用 Hexo 构建，已发布在 GitHub Pages：<https://maple0leaves.github.io/>。
 
 ## 用可视化界面写文章
 
