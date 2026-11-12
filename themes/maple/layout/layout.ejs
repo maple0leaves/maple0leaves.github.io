@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <meta name="description" content="<%= page.description || config.description %>">
+  <title><%= page.title ? page.title + ' · ' : '' %><%= config.title %></title>
+  <link rel="stylesheet" href="<%- url_for('/css/style.css') %>">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="<%- url_for('/') %>" aria-label="Maple Leaves 首页"><span class="brand-mark" aria-hidden="true">✳</span><span>Maple Leaves</span></a>
+      <nav aria-label="主导航">
+        <a href="<%- url_for('/') %>"<% if (is_home()) { %> aria-current="page"<% } %>>首页</a>
+        <a href="<%- url_for('/archives/') %>"<% if (is_archive()) { %> aria-current="page"<% } %>>归档</a>
+        <a href="<%- url_for('/about/') %>"<% if (page.path === 'about/index.html') { %> aria-current="page"<% } %>>关于</a>
+      </nav>
+    </header>
+    <main id="content"><%- body %></main>
+    <footer class="site-footer"><span>© <%= new Date().getFullYear() %> maple0leaves</span><span>记录经验，留下思考。</span></footer>
+  </div>
+</body>
+</html>

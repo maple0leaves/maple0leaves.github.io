@@ -1,0 +1,17 @@
+<section class="hero">
+  <div class="hero-eyebrow"><span class="eyebrow-line"></span> 一本持续更新的个人笔记</div>
+  <h1>把走过的路，<br><em>写成可以回看的文字。</em></h1>
+  <p>记录经验、学习笔记和偶尔的思考。愿每一篇文章，都能留下有用的一点点。</p>
+  <a class="hero-link" href="<%- url_for('/about/') %>">关于这个网站 <span aria-hidden="true">↗</span></a>
+</section>
+<section class="posts-section" aria-labelledby="posts-heading">
+  <div class="section-heading"><div><div class="section-kicker">JOURNAL</div><h2 id="posts-heading">最近文章</h2></div><a href="<%- url_for('/archives/') %>">查看归档 <span aria-hidden="true">↗</span></a></div>
+  <% page.posts.each(function(post) { %>
+    <article class="post-row">
+      <div class="post-date"><time datetime="<%= date(post.date, 'YYYY-MM-DD') %>"><%= date(post.date, 'YYYY.MM.DD') %></time></div>
+      <div class="post-info"><div class="post-category"><%= post.categories.length ? post.categories.toArray()[0].name : '随笔' %></div><h3><a href="<%- url_for(post.path) %>"><%= post.title %></a></h3><div class="post-excerpt"><%- strip_html(post.excerpt || post.content).substring(0, 110) %></div></div>
+      <a class="post-arrow" href="<%- url_for(post.path) %>" aria-label="阅读《<%= post.title %>》">↗</a>
+    </article>
+  <% }) %>
+  <% if (page.total > 1) { %><nav class="pagination" aria-label="文章分页"><%- paginator({prev_text: '← 上一页', next_text: '下一页 →'}) %></nav><% } %>
+</section>
