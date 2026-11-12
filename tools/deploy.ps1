@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 try {
     $settings = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
@@ -33,3 +33,16 @@ foreach ($command in @('clean', 'generate', 'deploy')) {
         throw "Hexo $command 失败，退出码：$LASTEXITCODE"
     }
 }
+
+& git add -A
+if ($LASTEXITCODE -ne 0) { throw '无法暂存网站源码' }
+& git diff --cached --quiet
+if ($LASTEXITCODE -eq 1) {
+    & git commit -m 'Update blog content'
+    if ($LASTEXITCODE -ne 0) { throw '无法保存网站源码提交' }
+}
+elseif ($LASTEXITCODE -ne 0) {
+    throw '无法检查网站源码状态'
+}
+& git push origin main
+if ($LASTEXITCODE -ne 0) { throw '网页已发布，但网站源码同步到 main 分支失败' }

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>写作台 · Maple Leaves</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-top"><a class="brand" href="https://maple0leaves.github.io/" target="_blank" rel="noopener"><span class="brand-mark">✳</span><span>Maple Leaves</span></a><p>你的个人写作台</p></div>
+      <button class="new-button" id="newPost" type="button"><span>＋</span> 写新文章</button>
+      <div class="sidebar-label">文章列表 <span id="postCount">0</span></div>
+      <div class="post-list" id="postList" aria-label="已保存的文章"></div>
+      <div class="sidebar-bottom"><span class="status-dot"></span> 仅在这台电脑上运行<a href="https://maple0leaves.github.io/" target="_blank" rel="noopener">打开我的网站 ↗</a></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar"><div><span class="breadcrumb">写作台</span><span class="slash">/</span><span id="documentName">新文章</span></div><div class="top-actions"><span class="save-state" id="saveState" role="status">准备写作</span><button class="button secondary" id="saveButton" type="button">保存草稿</button><button class="button primary" id="publishButton" type="button">发布到网站 <span>↗</span></button></div></header>
+
+      <div class="editor-scroll">
+        <section class="editor-intro"><div class="eyebrow">A SPACE TO THINK & WRITE</div><h1>写下一篇新文章<span>✳</span></h1><p>把想法慢慢写下来。保存后仍可继续修改，准备好时再发布。</p></section>
+        <section class="compose-card" aria-label="文章编辑器">
+          <div class="field-row"><label class="field title-field" for="title">文章标题<input id="title" type="text" maxlength="120" placeholder="给这篇文章起个名字" autocomplete="off"></label></div>
+          <div class="metadata-row"><label class="field" for="category">分类<input id="category" type="text" maxlength="60" placeholder="例如：经验心得"></label><label class="field" for="tags">标签<span class="field-hint">用逗号分隔</span><input id="tags" type="text" placeholder="例如：学习, 生活"></label></div>
+          <div class="writing-head"><div><div class="field-label">正文</div><div class="writing-hint">在左边写作，右边实时预览</div></div><div class="format-tools" aria-label="格式工具栏"><button type="button" data-insert="heading" title="小标题">H2</button><button type="button" data-insert="bold" title="加粗"><strong>B</strong></button><button type="button" data-insert="list" title="列表">☷</button><button type="button" data-insert="link" title="链接">↗</button><button type="button" id="imageButton" title="插入图片">▧</button><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></div></div>
+          <div class="writing-grid"><textarea id="content" spellcheck="true" placeholder="从这里开始写……&#10;&#10;可以先写一段经历，再写下你从中得到的收获。"></textarea><div class="preview-wrap"><div class="preview-label">实时预览 <span>PREVIEW</span></div><iframe id="preview" title="文章预览" sandbox="" referrerpolicy="no-referrer"></iframe></div></div>
+        </section>
+        <div class="helper-note"><span>✳</span><p>写作内容保存在这台电脑的网站项目中。点击“发布到网站”后，大家才能在公开网址看到更新。</p></div>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="publishDialog"><div class="dialog-icon">↗</div><h2 id="publishTitle">正在发布网站</h2><p id="publishMessage">请稍等，正在生成网页并上传到 GitHub。</p><pre id="publishLog"></pre><div class="dialog-actions"><button class="button secondary" id="closeDialog" type="button" disabled>关闭</button><a class="button primary" id="visitSite" href="https://maple0leaves.github.io/" target="_blank" rel="noopener" hidden>打开网站 ↗</a></div></dialog>
+  <script src="/app.js" defer></script>
+</body>
+</html>
