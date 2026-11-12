@@ -60,7 +60,7 @@ function renderList() {
     const name = document.createElement('strong');
     name.textContent = post.title;
     const date = document.createElement('small');
-    date.textContent = `${String(post.date).slice(0, 10)}${post.category ? ' · ' + post.category : ''}`;
+    date.textContent = `${post.status === 'draft' ? '草稿 · ' : ''}${String(post.date).slice(0, 10)}${post.category ? ' · ' + post.category : ''}`;
     button.append(name, date);
     button.addEventListener('click', () => openPost(post.id));
     list.append(button);
@@ -159,7 +159,9 @@ async function publishSite() {
   $('publishButton').disabled = true;
   try {
     if (dirty || !currentId) await save();
-    await api('/api/publish', { method: 'POST', body: '{}' });
+    const started = await api('/api/publish', { method: 'POST', body: JSON.stringify({ id: currentId }) });
+    currentId = started.id;
+    await refreshList();
     $('publishTitle').textContent = '正在发布网站';
     $('publishMessage').textContent = '正在生成网页、上传到 GitHub，并备份文章原稿。';
     $('publishLog').textContent = '';

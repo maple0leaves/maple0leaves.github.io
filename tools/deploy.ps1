@@ -28,7 +28,7 @@ $env:GIT_CONFIG_KEY_1 = 'http.sslBackend'
 $env:GIT_CONFIG_VALUE_1 = 'schannel'
 
 foreach ($command in @('clean', 'generate', 'deploy')) {
-    & npx.cmd hexo $command
+    & node (Join-Path $PSScriptRoot '..\node_modules\hexo\bin\hexo') $command
     if ($LASTEXITCODE -ne 0) {
         throw "Hexo $command 失败，退出码：$LASTEXITCODE"
     }

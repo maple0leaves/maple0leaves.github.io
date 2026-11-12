@@ -8,6 +8,7 @@ const { marked } = require('marked');
 
 const root = path.resolve(__dirname, '..');
 const postDir = path.join(root, 'source', '_posts');
+const draftDir = path.join(root, 'source', '_drafts');
 const imageDir = path.join(root, 'source', 'images');
 const port = 4173;
 const host = '127.0.0.1';
@@ -33,9 +34,10 @@ async function jsonBody(req) {
   try { return JSON.parse(raw || '{}'); } catch { throw new Error('请求格式不正确'); }
 }
 
-function safeId(id) {
-  if (!/^[^<>:"/\\|?*\x00-\x1f]+\.md$/u.test(id) || id.includes('..')) throw new Error('文章编号无效');
-  return path.join(postDir, id);
+function locate(id) {
+  const match = String(id).match(/^(draft|post):([^<>:"/\\|?*\x00-\x1f]+\.md)$/u);
+  if (!match || match[2].includes('..')) throw new Error('文章编号无效');
+  return { kind: match[1], name: match[2], file: path.join(match[1] === 'draft' ? draftDir : postDir, match[2]) };
 }
 
 function parsePost(raw) {
@@ -67,9 +69,10 @@ function serialize(meta, content) {
 }
 
 async function readPost(id) {
-  const { meta, content } = parsePost(await fs.readFile(safeId(id), 'utf8'));
+  const location = locate(id);
+  const { meta, content } = parsePost(await fs.readFile(location.file, 'utf8'));
   return {
-    id, title: String(meta.title || id.replace(/\.md$/i, '')),
+    id, status: location.kind, title: String(meta.title || location.name.replace(/\.md$/i, '')),
     date: meta.date instanceof Date ? meta.date.toISOString() : String(meta.date || ''),
     category: Array.isArray(meta.categories) ? String(meta.categories[0] || '') : String(meta.categories || ''),
     tags: Array.isArray(meta.tags) ? meta.tags.map(String) : [], content,
@@ -77,10 +80,13 @@ async function readPost(id) {
 }
 
 async function listPosts() {
-  const names = (await fs.readdir(postDir)).filter(x => x.endsWith('.md'));
-  const posts = await Promise.all(names.map(async id => {
+  await fs.mkdir(draftDir, { recursive: true });
+  const drafts = (await fs.readdir(draftDir)).filter(x => x.endsWith('.md'));
+  const published = (await fs.readdir(postDir)).filter(x => x.endsWith('.md') && !drafts.includes(x));
+  const ids = [...drafts.map(x => `draft:${x}`), ...published.map(x => `post:${x}`)];
+  const posts = await Promise.all(ids.map(async id => {
     const post = await readPost(id);
-    return { id: post.id, title: post.title, date: post.date, category: post.category };
+    return { id: post.id, title: post.title, date: post.date, category: post.category, status: post.status };
   }));
   return posts.sort((a, b) => b.date.localeCompare(a.date));
 }
@@ -89,20 +95,32 @@ async function savePost(id, body) {
   const data = normalize(body);
   let meta;
   if (id) {
-    meta = parsePost(await fs.readFile(safeId(id), 'utf8')).meta;
+    const previous = locate(id);
+    meta = parsePost(await fs.readFile(previous.file, 'utf8')).meta;
+    id = `draft:${previous.name}`;
   } else {
     const slug = data.title.replace(/[<>:"/\\|?*\x00-\x1f]/gu, '').replace(/\s+/gu, '-').slice(0, 45) || 'article';
-    id = `${localDate().slice(0, 10)}-${slug}-${crypto.randomBytes(3).toString('hex')}.md`;
+    id = `draft:${localDate().slice(0, 10)}-${slug}-${crypto.randomBytes(3).toString('hex')}.md`;
     meta = { date: localDate() };
   }
   meta.title = data.title;
   meta.categories = data.category ? [data.category] : [];
   meta.tags = data.tags;
-  const destination = safeId(id);
+  await fs.mkdir(draftDir, { recursive: true });
+  const destination = locate(id).file;
   const temporary = `${destination}.${crypto.randomBytes(4).toString('hex')}.tmp`;
   await fs.writeFile(temporary, serialize(meta, data.content), 'utf8');
   try { await fs.rename(temporary, destination); } catch (error) { await fs.rm(temporary, { force: true }); throw error; }
   return readPost(id);
+}
+
+async function preparePublication(id) {
+  const location = locate(id);
+  if (location.kind === 'post') return id;
+  const target = path.join(postDir, location.name);
+  await fs.copyFile(location.file, target);
+  await fs.unlink(location.file);
+  return `post:${location.name}`;
 }
 
 async function uploadImage(body) {
@@ -173,7 +191,13 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { html: marked.parse(String(body.content || '').slice(0, 500_000), { gfm: true, breaks: true }) });
     }
     if (url.pathname === '/api/images' && req.method === 'POST') return send(res, 201, { url: await uploadImage(await jsonBody(req)) });
-    if (url.pathname === '/api/publish' && req.method === 'POST') return send(res, startPublish() ? 202 : 409, { publish });
+    if (url.pathname === '/api/publish' && req.method === 'POST') {
+      if (publish.running) return send(res, 409, { error: '网站正在发布中' });
+      const body = await jsonBody(req);
+      const id = await preparePublication(body.id);
+      startPublish();
+      return send(res, 202, { publish, id });
+    }
     if (url.pathname === '/api/publish' && req.method === 'GET') return send(res, 200, { publish });
     send(res, 404, { error: '页面不存在' });
   } catch (error) {
